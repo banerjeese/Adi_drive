@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening drive…</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a1a; --muted: #666666; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111111; --fg: #eeeeee; --muted: #999999; }
+  }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    background: var(--bg); color: var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    text-align: center; padding: 1rem; box-sizing: border-box;
+  }
+  small { color: var(--muted); display: block; margin-top: .5rem; }
+</style>
+</head>
+<body>
+<div>
+  <p id="msg">Opening the drive…</p>
+  <small id="sub"></small>
+</div>
+<script>
+  // ---- EDIT THESE THREE LINES ----
+  const USER   = "banerjeese";
+  const REPO   = "Adi_drive";
+  const BRANCH = "main";
+  // Use "" instead if your repo is named YOUR_GITHUB_USERNAME.github.io
+  const BASE   = "/" + REPO;
+  // --------------------------------
+
+  const msg = document.getElementById("msg");
+  const sub = document.getElementById("sub");
+
+  async function go() {
+    try {
+      const res = await fetch(
+        "https://raw.githubusercontent.com/" + USER + "/" + REPO + "/" + BRANCH +
+        "/url.json?t=" + Date.now(), { cache: "no-store" });
+      const data = await res.json();
+
+      if (!data.url) {
+        msg.textContent = "The drive is offline right now.";
+        sub.textContent = "Trying again in a few seconds…";
+        setTimeout(go, 15000);
+        return;
+      }
+
+      // keep anything after the site address, e.g. /share/abc123
+      let rest = location.pathname;
+      if (BASE && rest.startsWith(BASE)) rest = rest.slice(BASE.length);
+      if (rest === "/index.html" || rest === "/404.html") rest = "";
+
+      location.replace(data.url + rest + location.search + location.hash);
+    } catch (e) {
+      msg.textContent = "Could not reach the drive.";
+      sub.textContent = "Trying again in a few seconds…";
+      setTimeout(go, 15000);
+    }
+  }
+  go();
+</script>
+</body>
+</html>
